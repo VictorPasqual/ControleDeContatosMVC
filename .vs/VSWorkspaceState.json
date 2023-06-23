@@ -1,0 +1,16 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\ControleDeContatos",
+    "\\ControleDeContatos\\Enums",
+    "\\ControleDeContatos\\Filters",
+    "\\ControleDeContatos\\Helper",
+    "\\ControleDeContatos\\Models",
+    "\\ControleDeContatos\\Repositorio",
+    "\\ControleDeContatos\\Repositorio\\Interfaces",
+    "\\ControleDeContatos\\Views",
+    "\\ControleDeContatos\\Views\\Restrito"
+  ],
+  "SelectedNode": "\\ControleDeContatos.sln",
+  "PreviewInSolutionExplorer": false
+}
