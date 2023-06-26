@@ -1,4 +1,7 @@
-﻿using ControleDeContatos.Helper;
+﻿using log4net;
+using log4net.Repository;
+using Microsoft.Extensions.Logging;
+using ControleDeContatos.Helper;
 using ControleDeContatos.Models;
 using ControleDeContatos.Repositorio;
 using Microsoft.AspNetCore.Mvc;
@@ -8,14 +11,18 @@ namespace ControleDeContatos.Controllers
 {
     public class LoginController : Controller
     {
+        private readonly ILogger<LoginController> _logger;
         private readonly IUsuarioRepositorio _usuarioRepositorio;
         private readonly ISessao _sessao;
         private readonly IEmail _email;
 
         public LoginController(IUsuarioRepositorio usuarioRepositorio,
                                ISessao sessao,
-                               IEmail email)
+                               IEmail email,
+                               ILogger<LoginController> logger)
         {
+
+            _logger = logger;
             _usuarioRepositorio = usuarioRepositorio;
             _sessao = sessao;
             _email = email;
@@ -53,23 +60,33 @@ namespace ControleDeContatos.Controllers
 
                     if (usuario != null)
                     {
-                        if (usuario.SenhaValida(loginModel.Senha))
+                        if (usuario.Senha == loginModel.Senha)
                         {
                             _sessao.CriarSessaoDoUsuario(usuario);
+                            _logger.LogInformation($"Usuário '{usuario.Login}' fez login com sucesso.");
                             return RedirectToAction("Index", "Home");
                         }
-
-                        TempData["MensagemErro"] = $"Senha do usuário é inválida, tente novamente.";
+                        else
+                        {
+                            TempData["MensagemErro"] = $"Senha do usuário é inválida, tente novamente.";
+                            _logger.LogWarning($"Tentativa de login inválida para o usuário '{usuario.Login}'. Senha incorreta.");
+                            _logger.LogWarning($"Senha informada: {loginModel.Senha}");
+                            _logger.LogWarning($"Senha válida do usuário: {usuario.Senha}");
+                        }
                     }
-
-                    TempData["MensagemErro"] = $"Usuário e/ou senha inválido(s). Por favor, tente novamente.";
+                    else
+                    {
+                        TempData["MensagemErro"] = $"Usuário não encontrado. Por favor, tente novamente.";
+                        _logger.LogWarning($"Usuário não encontrado para o login: {loginModel.Login}");
+                    }
                 }
 
                 return View("Index");
             }
             catch (Exception erro)
             {
-                TempData["MensagemErro"] = $"Ops, não conseguimos realizar seu login, tente novamante, detalhe do erro: {erro.Message}";
+                _logger.LogError($"Ops, não conseguimos realizar seu login, tente novamente, detalhe do erro: {erro.Message}");
+                TempData["MensagemErro"] = $"Ops, não conseguimos realizar seu login, tente novamente, detalhe do erro: {erro.Message}";
                 return RedirectToAction("Index");
             }
         }

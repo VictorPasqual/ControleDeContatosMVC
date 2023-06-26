@@ -24,10 +24,13 @@ builder.Services.AddScoped<IContatoRepositorio, ContatoRepositorio>();
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<ISessao, Sessao>();
 builder.Services.AddScoped<IEmail, Email>();
-builder.Services.AddSession(o =>
+builder.Services.AddSession(options =>
 {
-    o.Cookie.HttpOnly = true;
-    o.Cookie.IsEssential = true;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Ou CookieSecurePolicy.Always se estiver usando HTTPS
 });
 
 var app = builder.Build();

@@ -39,18 +39,15 @@ namespace ControleDeContatos.Repositorio
         {
             // Gravar no banco de dados
             usuario.DataCadastro = DateTime.Now;
-            usuario.SetSenhaHash();
             _context.Usuarios.Add(usuario);
             _context.SaveChanges();
             return usuario;
         }
 
+
         public UsuarioModel Atualizar(UsuarioModel usuario)
         {
-            UsuarioModel usuarioDB = ListarPorId(usuario.Id);
-
-            if (usuarioDB == null) throw new System.Exception("Houve um erro ao atualizar o registro do usuário!");
-
+            UsuarioModel usuarioDB = ListarPorId(usuario.Id) ?? throw new System.Exception("Houve um erro ao atualizar o registro do usuário!");
             usuarioDB.Nome = usuario.Nome;
             usuarioDB.Email = usuario.Email;
             usuarioDB.Login = usuario.Login;
@@ -65,15 +62,13 @@ namespace ControleDeContatos.Repositorio
 
         public UsuarioModel AlterarSenha(AlterarSenhaModel alterarSenhaModel)
         {
-            UsuarioModel usuarioDB = ListarPorId(alterarSenhaModel.Id);
+            UsuarioModel usuarioDB = ListarPorId(alterarSenhaModel.Id) ?? throw new Exception("Houve um erro na atualização da senha, usuário não encontrado!");
 
-            if (usuarioDB == null) throw new Exception("Houve um erro na atualização da senha, usuário não encontrado!");
+            if (usuarioDB.Senha != alterarSenhaModel.SenhaAtual) throw new Exception("Senha atual não confere!");
 
-            if (!usuarioDB.SenhaValida(alterarSenhaModel.SenhaAtual)) throw new Exception("Senha atual não confere!");
+            if (usuarioDB.Senha == alterarSenhaModel.NovaSenha) throw new Exception("Nova senha deve ser diferente da senha atual!");
 
-            if (usuarioDB.SenhaValida(alterarSenhaModel.NovaSenha)) throw new Exception("Nova senha deve ser diferente da senha atual!");
-
-            usuarioDB.SetNovaSenha(alterarSenhaModel.NovaSenha);
+            usuarioDB.Senha = alterarSenhaModel.NovaSenha;
             usuarioDB.DataAtualizacao = DateTime.Now;
 
             _context.Usuarios.Update(usuarioDB);
@@ -84,12 +79,11 @@ namespace ControleDeContatos.Repositorio
 
         public bool Apagar(int id)
         {
-            UsuarioModel usuarioDB = ListarPorId(id);
-
-            if (usuarioDB == null) throw new System.Exception("Houve um erro ao deletar o registro do usuário!");
+            UsuarioModel usuarioDB = ListarPorId(id) ?? throw new System.Exception("Houve um erro ao deletar o registro do usuário!");
 
             _context.Usuarios.Remove(usuarioDB);
             _context.SaveChanges();
+
             return true;
         }
     }

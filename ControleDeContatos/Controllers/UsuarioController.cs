@@ -1,4 +1,6 @@
-﻿using ControleDeContatos.Filters;
+﻿using log4net;
+using log4net.Repository;
+using ControleDeContatos.Filters;
 using ControleDeContatos.Models;
 using ControleDeContatos.Repositorio;
 using ControleDeContatos.Repositorio.Interfaces;
@@ -12,10 +14,12 @@ namespace ControleDeContatos.Controllers
     {
         private readonly IUsuarioRepositorio _usuarioRepositorio;
         private readonly IContatoRepositorio _contatoRepositorio;
+        private readonly ILogger<LoginController> _logger;
 
-        public UsuarioController(IUsuarioRepositorio usuarioRepositorio, IContatoRepositorio contatoRepositorio)
+        public UsuarioController(IUsuarioRepositorio usuarioRepositorio, IContatoRepositorio contatoRepositorio, ILogger<LoginController> logger)
         {
             this._usuarioRepositorio = usuarioRepositorio;
+            _logger = logger;
             _contatoRepositorio = contatoRepositorio;
         }
 
@@ -75,9 +79,15 @@ namespace ControleDeContatos.Controllers
         {
             try
             {
-                if (ModelState.IsValid)
+                _logger.LogWarning($"Tentativa de cadastro do usuário '{usuario.Nome}', '{usuario.Email}', '{usuario.Login}', '{usuario.Senha}, '{usuario.Perfil}.");
+                if (usuario != null)
                 {
+                    _logger.LogWarning($"Tentativa de cadastro do usuário '{usuario.Nome}'.");
+
                     _usuarioRepositorio.Adicionar(usuario);
+
+                    _logger.LogWarning($"Registro de usuário '{usuario.Nome}' cadastrado com sucesso!");
+
                     TempData["MensagemSucesso"] = "Registro de usuário cadastrado com sucesso!";
                     return RedirectToAction("Index");
                 }
@@ -86,10 +96,13 @@ namespace ControleDeContatos.Controllers
             }
             catch (System.Exception erro)
             {
-                TempData["MensagemErro"] = $"Ops, não conseguimos cadastrar seu registro de usuário, tente novamente, detalhe do erro: {erro.Message}";
+                _logger.LogError($"Erro ao cadastrar o usuário '{usuario.Nome}'. Detalhes: {erro.Message}");
+
+                TempData["MensagemErro"] = $"Ops, não conseguimos cadastrar seu registro de usuário, tente novamente. Detalhes do erro: {erro.Message}";
                 return RedirectToAction("Index");
             }
         }
+
 
         [HttpPost]
         public IActionResult Editar(UsuarioSemSenhaModel usuarioSemSenha)
